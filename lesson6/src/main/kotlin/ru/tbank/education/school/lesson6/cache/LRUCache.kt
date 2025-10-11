@@ -1,35 +1,30 @@
 package ru.tbank.education.school.lesson6.cache
 
-/**
- * Интерфейс для кэша с политикой LRU (Least Recently Used).
- * Кэш хранит ограниченное количество элементов.
- * Когда кэш переполняется, удаляется самый "старый" элемент.
- */
-interface LRUCache<K, V> {
-    /**
-     * Добавляет значение value под ключом key в кэш.
-     * Если ключ уже есть, обновляет его и помечает как недавно использованный.
-     */
-    fun put(key: K, value: V)
+class LRUCacheImpl<K, V>(
+    private val capacity: Int
+) : LRUCache<K, V> {
 
-    /**
-     * Получает значение по ключу key и помечает его как недавно использованное.
-     * Возвращает null, если ключа нет в кэше.
-     */
-    fun get(key: K): V?
+    private val map = object : LinkedHashMap<K, V>(capacity, 0.75f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<K, V>?): Boolean {
+            return this.size > capacity
+        }
+    }
 
-    /**
-     * Удаляет значение по ключу key.
-     */
-    fun remove(key: K)
+    override fun put(key: K, value: V) {
+        map[key] = value
+    }
 
-    /**
-     * Очищает весь кэш.
-     */
-    fun clear()
-    
-    /**
-     * Возвращает текущий размер кэша.
-     */
-    fun size(): Int
+    override fun get(key: K): V? {
+        return map[key]
+    }
+
+    override fun remove(key: K) {
+        map.remove(key)
+    }
+
+    override fun clear() {
+        map.clear()
+    }
+
+    override fun size(): Int = map.size
 }

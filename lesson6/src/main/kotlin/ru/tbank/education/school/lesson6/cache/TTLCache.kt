@@ -1,31 +1,35 @@
 package ru.tbank.education.school.lesson6.cache
 
-/**
- * Интерфейс для простого кэша с временем жизни записей.
- * Автоматически удаляет устаревшие записи при обращении.
- */
-interface TTLCache<K, V> {
-    
-    /**
-     * Помещает значение в кэш с указанным временем жизни.
-     * @param key Ключ для доступа к значению
-     * @param value Сохраняемое значение
-     * @param ttlMs Время жизни записи в миллисекундах
-     */
-    fun put(key: K, value: V, ttlMs: Long)
-    
-    /**
-     * Помещает значение в кэш со временем жизни по умолчанию (60 секунд).
-     * @param key Ключ для доступа к значению
-     * @param value Сохраняемое значение
-     */
-    fun put(key: K, value: V)
-    
-    /**
-     * Получает значение из кэша по ключу.
-     * Автоматически удаляет устаревшие записи при обращении.
-     * @param key Ключ для поиска значения
-     * @return Значение или null если не найдено или устарело
-     */
-    fun get(key: K): V?
+import java.util.*
+
+class TTLCache<K, V>(private val capacity: Int, private val defaultTtlMs: Long = 60_000) {
+
+    private data class Entry<V>(val value: V, val expireAt: Long)
+
+    private val map = object : LinkedHashMap<K, Entry<V>>(capacity, 0.75f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<K, Entry<V>>?): Boolean {
+            return this.size > capacity
+        }
+    }
+
+    @Synchronized
+    fun put(key: K, value: V, ttlMs: Long) {
+        val expireAt = System.currentTimeMillis() + ttlMs
+        map[key] = Entry(value, expireAt)
+    }
+
+    @Synchronized
+    fun put(key: K, value: V) {
+        put(key, value, defaultTtlMs)
+    }
+
+    @Synchronized
+    fun get(key: K): V? {
+        val entry = map[key] ?: return null
+        if (System.currentTimeMillis() > entry.expireAt) {
+            map.remove(key)
+            return null
+        }
+        return entry.value
+    }
 }

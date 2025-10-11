@@ -13,27 +13,27 @@ class Library {
     private val borrowedBooks = mutableMapOf<User, MutableList<Book>>()
 
     fun addBook(book: Book) {
-        // TODO: добавить книгу в каталог
+       catalog.add(book)
     }
 
     fun registerUser(user: User) {
-        // TODO: добавить пользователя
+        catalog.add(user)
     }
 
     fun lendBook(user: User, book: Book) {
-        // TODO: реализовать выдачу книги пользователю
+       borrowedBooks[user].add(book)
     }
 
     fun returnBook(user: User, book: Book) {
-        // TODO: реализовать возврат книги
+        borrowedBooks[user].remove(book)
     }
 
     fun listBooksSortedByYear() {
-        // TODO: вывести книги, отсортированные по году
+       return catalog.sortedBy { it.year }
     }
 
     fun findBooksByAuthor(author: String) {
-        // TODO: найти все книги по автору
+        val filtered = {it}
     }
 
     fun groupBooksByGenre() {
